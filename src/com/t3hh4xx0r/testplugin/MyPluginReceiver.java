@@ -23,6 +23,7 @@ public class MyPluginReceiver extends BroadcastReceiver {
 			String plugin_name_value = "MyExample Plugin";
 			b.putString("author_name", author_name_value);
 			b.putString("plugin_name", plugin_name_value);
+			b.putString("package_name", context.getPackageName());
 			i.putExtras(b);
 			context.sendBroadcast(i); 
 		}
