@@ -1,6 +1,8 @@
 package com.t3hh4xx0r.testplugin;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.TextView;
@@ -27,7 +29,10 @@ public class PanelView extends TextView {
 	//This is where your view is built. you may set your callbacks and all of that here.
 	public void init(Context context) {
 		c = context;
-		this.setText("WOOT, This is a third party application providing custom views via dynamic class loading.");
+		String defaultText = "WOOT, This is a third party application providing custom views via dynamic class loading.";
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(c);
+		defaultText = prefs.getString("panel_text", defaultText);
+		this.setText(defaultText);
 		this.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
