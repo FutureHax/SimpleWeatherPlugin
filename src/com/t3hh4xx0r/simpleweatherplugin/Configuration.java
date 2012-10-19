@@ -13,7 +13,6 @@ import android.widget.ToggleButton;
 
 public class Configuration extends LinearLayout {
 	Context ctx;
-    public static final String PREFERENCES_KEY = "plugin_preferences";
 
 	public Configuration(Context context) {
 		super(context);
@@ -32,7 +31,7 @@ public class Configuration extends LinearLayout {
 
 	private void init(Context c) {		
 		ctx = c;
-		final SharedPreferences prefs = ctx.getSharedPreferences(PREFERENCES_KEY, Context.MODE_WORLD_WRITEABLE);
+		final SharedPreferences prefs = ctx.getSharedPreferences(MainActivity.getPrefsKey(ctx), Context.MODE_WORLD_WRITEABLE);
 
         LayoutInflater layoutInflater = (LayoutInflater)ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		layoutInflater.inflate(R.layout.config, this);

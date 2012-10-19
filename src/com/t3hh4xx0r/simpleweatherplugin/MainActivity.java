@@ -7,16 +7,19 @@ import android.os.Bundle;
 import android.util.Log;
 
 public class MainActivity extends Activity {
-    public static final String PREFERENCES_KEY = "plugin_preferences";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
-		final SharedPreferences prefs = this.getSharedPreferences(PREFERENCES_KEY, Context.MODE_WORLD_WRITEABLE);
+		final SharedPreferences prefs = this.getSharedPreferences(getPrefsKey(this), Context.MODE_WORLD_WRITEABLE);
 		if (!prefs.getBoolean("shouldShow", false)) {
 			prefs.edit().putBoolean("shouldShow", true).apply();
 		}
+	}
+	
+	public static String getPrefsKey(Context c) {
+		return c.getPackageName()+"_plugin_preferences";
 	}
 }

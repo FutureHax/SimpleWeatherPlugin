@@ -26,7 +26,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class PanelView extends RelativeLayout implements OnClickListener {
-    public static final String PREFERENCES_KEY = "plugin_preferences";
 
     private TextView mWeatherCity, mWeatherCondition, mWeatherLowHigh, mWeatherTemp, mUpdateTime;
     private ImageView mWeatherImage;
@@ -274,11 +273,11 @@ public class PanelView extends RelativeLayout implements OnClickListener {
     }
     
 	public static int getWeatherInterval(Context context) {
-		final SharedPreferences preferences = context.getSharedPreferences(PREFERENCES_KEY, Context.MODE_WORLD_WRITEABLE);
+		final SharedPreferences preferences = context.getSharedPreferences(MainActivity.getPrefsKey(context), Context.MODE_WORLD_WRITEABLE);
 		return preferences.getInt("com.t3hh4xx0r.haxlauncher.ui_live_weather_interval", 60);
 	}        	
 	public static boolean getUseMetric(Context context) {
-		final SharedPreferences preferences = context.getSharedPreferences(PREFERENCES_KEY, Context.MODE_WORLD_WRITEABLE);
+		final SharedPreferences preferences = context.getSharedPreferences(MainActivity.getPrefsKey(context), Context.MODE_WORLD_WRITEABLE);
 		return preferences.getBoolean("com.t3hh4xx0r.haxlauncher.ui_live_weather_metric", false);
 	}
 

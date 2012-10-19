@@ -16,8 +16,6 @@
         android:id="@+id/metric_toggle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="ToggleButton" 
-        android:layout_margin="5dp"
         android:textOn="Using metric measurments"
         android:textOff="Using imperial measurments"/>
 
