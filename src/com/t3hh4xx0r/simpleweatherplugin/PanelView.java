@@ -6,18 +6,15 @@ import java.util.Date;
 import org.w3c.dom.Document;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Resources;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
-import android.os.Handler;
-import android.os.Message;
-import android.preference.PreferenceManager;
+import android.os.Bundle;
 import android.text.format.DateFormat;
-import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -30,21 +27,14 @@ public class PanelView extends RelativeLayout implements OnClickListener {
     private TextView mWeatherCity, mWeatherCondition, mWeatherLowHigh, mWeatherTemp, mUpdateTime;
     private ImageView mWeatherImage;
     private View mWeatherPanel;
-    
-	public PanelView(Context context, AttributeSet attrs, int defStyle) {
-		super(context, attrs, defStyle);
-		init(context);
-	}
-	public PanelView(Context context, AttributeSet attrs) {
-		super(context, attrs);
-		init(context);
-	}
+	private static final String PANEL_UPDATE = "com.t3hh4xx0r.haxlauncher.PANEL_UPDATE";
+
 	public PanelView(Context context) {
 		super(context);
 		init(context);
 	}		
 	
-	public void init(Context context) {
+	public void init(Context context) {		    
 		   LayoutInflater layoutInflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		   mWeatherPanel = layoutInflater.inflate(R.layout.weather_lp, this);
 		   mWeatherPanel.setOnClickListener(this);
@@ -64,97 +54,79 @@ public class PanelView extends RelativeLayout implements OnClickListener {
     private static final String URL_YAHOO_API_WEATHER = "http://weather.yahooapis.com/forecastrss?w=%s&u=";
     private static WeatherInfo mWeatherInfo = new WeatherInfo();
     public final static int QUERY_WEATHER = 0;
-    private static final int UPDATE_WEATHER = 1;
-
-    public Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-            case QUERY_WEATHER:
-                Thread queryWeather = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        LocationManager locationManager = (LocationManager) getLauncherContext().
-                                getSystemService(Context.LOCATION_SERVICE);
-                        //change me
-                        boolean useCustomLoc = false;
-                        String customLoc = null;
-                        String woeid = null;
-
-                        // custom location
-                        if (customLoc != null && useCustomLoc) {
-                            try {
-                                woeid = YahooPlaceFinder.GeoCode(getContext().getApplicationContext(), customLoc);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        // network location
-                        } else {
-                            Criteria crit = new Criteria();
-                            crit.setAccuracy(Criteria.ACCURACY_COARSE);
-                            String bestProvider = locationManager.getBestProvider(crit, true);
-                            Location loc = null;
-                            if (bestProvider != null) {
-                                loc = locationManager.getLastKnownLocation(bestProvider);
-                            } else {
-                                loc = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
-                            }
-                            try {
-                                woeid = YahooPlaceFinder.reverseGeoCode(getContext(), loc.getLatitude(),
-                                        loc.getLongitude());
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        Message msg = Message.obtain();
-                        msg.what = UPDATE_WEATHER;
-                        msg.obj = woeid;
-                        mHandler.sendMessage(msg);
-                    }
-                });
-                queryWeather.setPriority(Thread.MIN_PRIORITY);
-                queryWeather.start();
-                break;
-            case UPDATE_WEATHER:
-               String woeid = (String) msg.obj;
-                if (woeid != null) {
-                    WeatherInfo w = null;
-                    try {
-                        w = parseXml(getDocument(woeid));
-                    } catch (Exception e) {
-                    	e.printStackTrace();
-                    }
-                    if (w == null) {
-                        setNoWeatherData();
-                    } else {
-                        setWeatherData(w);
-                        mWeatherInfo = w;
-                    }
-                } else {
-                    if (mWeatherInfo.temp.equals(WeatherInfo.NODATA)) {
-                        setNoWeatherData();
-                    } else {
-                        setWeatherData(mWeatherInfo);
-                    }
-                }
-                break;
-            }
-        }
-    };
-
+    
+    public void updateWeather(String woeid) {
+ 	   if (woeid != null) {
+           WeatherInfo w = null;
+           try {
+               w = parseXml(getDocument(woeid));
+           } catch (Exception e) {
+           	e.printStackTrace();
+           }
+           if (w == null) {
+               setNoWeatherData();
+           } else {
+               setWeatherData(w);
+               mWeatherInfo = w;
+           }
+       } else {
+           if (mWeatherInfo.temp.equals(WeatherInfo.NODATA)) {
+               setNoWeatherData();
+           } else {
+               setWeatherData(mWeatherInfo);
+           }
+       }
+    }
+    
     /**
      * Reload the weather forecast
      */
-    public void refreshWeather(boolean force) {
+    public void refreshWeather(boolean force) {    
     	final long interval = getWeatherInterval(getContext()); // Default to hourly
-        if (((System.currentTimeMillis() - mWeatherInfo.last_sync) / 60000) >= interval) {
-        	mHandler.sendEmptyMessage(QUERY_WEATHER);
+        if ((((System.currentTimeMillis() - mWeatherInfo.last_sync) / 60000) >= interval) || (force)) {
+        	updateWeather(getWoeid());        	
         } else {
             setWeatherData(mWeatherInfo);
         }
     }
 
-    /**
+    private String getWoeid() {
+    	LocationManager locationManager = (LocationManager) getLauncherContext().
+                getSystemService(Context.LOCATION_SERVICE);
+        //change me
+        boolean useCustomLoc = false;
+        String customLoc = null;
+        String woeid = null;
+
+        // custom location
+        if (customLoc != null && useCustomLoc) {
+            try {
+                woeid = YahooPlaceFinder.GeoCode(getContext().getApplicationContext(), customLoc);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        // network location
+        } else {
+            Criteria crit = new Criteria();
+            crit.setAccuracy(Criteria.ACCURACY_COARSE);
+            String bestProvider = locationManager.getBestProvider(crit, true);
+            Location loc = null;
+            if (bestProvider != null) {
+                loc = locationManager.getLastKnownLocation(bestProvider);
+            } else {
+                loc = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+            }
+            try {
+                woeid = YahooPlaceFinder.reverseGeoCode(getContext(), loc.getLatitude(),
+                        loc.getLongitude());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }		
+        return woeid;
+	}
+
+	/**
      * Display the weather information
      * @param w
      */
@@ -283,8 +255,13 @@ public class PanelView extends RelativeLayout implements OnClickListener {
 
 	@Override
 	public void onClick(View v) {
-		refreshWeather(false);		
-	} 
+		Intent i = new Intent();
+    	Bundle b = new Bundle();
+    	b.putString("name", v.getContext().getPackageName());
+    	i.putExtras(b);
+    	i.setAction(PANEL_UPDATE);
+    	this.getContext().sendBroadcast(i);
+    } 
 
 	private Context getLauncherContext() {
 		Context forgeinContext = null;

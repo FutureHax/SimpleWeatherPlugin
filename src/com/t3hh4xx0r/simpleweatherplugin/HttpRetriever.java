@@ -56,6 +56,9 @@ public class HttpRetriever {
     private HttpURLConnection httpConnection;
 
     public String retrieve(String url) {
+    	StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+    	StrictMode.setThreadPolicy(policy); 
+    	
         HttpGet get = new HttpGet(url);
         try {
             HttpResponse getResponse = client.execute(get);
